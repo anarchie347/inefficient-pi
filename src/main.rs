@@ -1,7 +1,8 @@
 
 fn main() {
-    println!("Hello, world!");
-    let ratio = 1;
+
+
+    let ratio = 1e8;
 
     let mut state = Simstate {
         v1: 0f64,
@@ -11,13 +12,12 @@ fn main() {
     };
     let mut counter = 0;
     let mut coll_type = false; //true -> wall, false -> block
-    while state.v1 > state.v2 {
+    while state.v1 > state.v2 || state.v1 < 0f64 {
         let collide = if coll_type {wall_collide} else {block_collide};
         
         state = collide(state);
-        print!("{}, {}", state.v1, state.v2);
         counter += 1;
-        coll_type != coll_type;
+        coll_type = !coll_type;
     }
     print!("ration {}:1, #collisions = {}",  ratio, counter);
 }
@@ -25,12 +25,11 @@ fn main() {
 fn block_collide(state : Simstate) -> Simstate {
     let energy2 = calc_2energy(&state);
     let momentum = calc_momentum(&state);
-
     //v2 is bigger block, so v is always increasing (-> +ve), so newv2 will always be the positive solution
-    let newv2 = solve_quadratic_pos(state.m2.powf(2f64) + state.m2 * state.m1, -(2f64 * state.m2),momentum.powf(2f64) - state.m1 * energy2);
+    let newv2 = solve_quadratic_pos(state.m2.powf(2f64) + state.m2 * state.m1, -(2f64 * state.m2 * momentum),momentum.powf(2f64) - state.m1 * energy2);
     //v1 is smaller block, so for a block collision, v is always decreasing, so newv1 will be negative sol
-    let newv1 = solve_quadratic_neg(state.m1.powf(2f64) + state.m1 * state.m2, -(2f64 * state.m1), momentum.powf(2f64) - state.m2 * energy2);
-
+    let newv1 = solve_quadratic_neg(state.m1.powf(2f64) + state.m1 * state.m2, -(2f64 * state.m1 * momentum), momentum.powf(2f64) - state.m2 * energy2);
+    
     Simstate {
         v1: newv1,
         v2: newv2,
